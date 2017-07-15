@@ -17,8 +17,7 @@ var utf8 = Packages.java.nio.charset.StandardCharsets.UTF_8;
 
 var moduleExcludes = {
     "nbproject": true,
-    "underscore": true, // used to test lodash only
-    "validator": true // very slow to load in duktape
+    "underscore": true // used to test lodash only
 };
 
 var fileExcludes = {
