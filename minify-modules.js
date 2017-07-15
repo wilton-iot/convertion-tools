@@ -16,16 +16,16 @@ var system = Packages.java.lang.System;
 var utf8 = Packages.java.nio.charset.StandardCharsets.UTF_8;
 
 var moduleExcludes = {
-    "assert": true,
-    "minimist": true,
     "nbproject": true,
-    "tape-compat": true,
-    "underscore": true
+    "underscore": true, // used to test lodash only
+    "validator": true // very slow to load in duktape
 };
 
 var fileExcludes = {
     "bower.json": true,
-    "Makefile": true
+    "Makefile": true,
+    "LICENSE": true,
+    "wilton-sanity-test.js": true
 };
 
 var dirPrefixExcludes = [
