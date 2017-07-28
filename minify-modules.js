@@ -17,7 +17,8 @@ var utf8 = Packages.java.nio.charset.StandardCharsets.UTF_8;
 
 var moduleExcludes = {
     "nbproject": true,
-    "underscore": true // used to test lodash only
+    "underscore": true, // used to test lodash only
+    "examples": true // not a lib, bundled unminified
 };
 
 var fileExcludes = {
