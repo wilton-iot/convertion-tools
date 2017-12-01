@@ -6,8 +6,8 @@ var system = Packages.java.lang.System;
 var utf8 = Packages.java.nio.charset.StandardCharsets.UTF_8;
 var replace = Packages.java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
-var prefix = "define(function(){var require = WILTON_requiresync;var module = {exports: {}};var exports = module.exports;";
-var postfix = "return module.exports;});";
+var prefix = "define(function(localRequire, exports, module) { var requireOrig = require; require = localRequire;";
+var postfix = "require = requireOrig;});";
 
 
 if (1 != arguments.length) {
