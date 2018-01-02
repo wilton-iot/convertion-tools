@@ -89,7 +89,7 @@ function isFileExcluded(pa, excludes) {
     for each (expath in excludes) {
         if (expath.equals(pa)) {
             return true;
-        }        
+        }
     }
     return false;
 }
@@ -144,7 +144,7 @@ function walkAndMinify(inDir, outDir, excludes) {
                 var collectedExcludes = [];
                 for each (en in excludesStrings) {
                     collectedExcludes.push(paths.get(pa, en));
-                }            
+                }
                 print("module: [" + fname + "]");
                 walkAndMinify(inPath.toString(), outPath.toString(), collectedExcludes);
             }
