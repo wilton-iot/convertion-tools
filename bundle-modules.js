@@ -131,7 +131,7 @@ function listDirectory(dir) {
     return list;
 }
 
-function walkAndMinify(inDir, outDir, excludes) {
+function walkAndMinify(inDir, outDir, excludes, minify) {
     files.createDirectories(paths.get(outDir));
     var list = listDirectory(inDir);
     for each (pa in list) {
@@ -146,18 +146,22 @@ function walkAndMinify(inDir, outDir, excludes) {
                     collectedExcludes.push(paths.get(pa, en));
                 }
                 print("module: [" + fname + "]");
-                walkAndMinify(inPath.toString(), outPath.toString(), collectedExcludes);
+                walkAndMinify(inPath.toString(), outPath.toString(), collectedExcludes, minify);
             }
         } else {
             if (files.isDirectory(pa)) {
                 if (!isDirExcluded(pa, excludes)) {
                     print("  directory: [" + inPath.toString() + "]");
-                    walkAndMinify(inPath.toString(), outPath.toString(), excludes);
+                    walkAndMinify(inPath.toString(), outPath.toString(), excludes, minify);
                 }
             } else if (!isFileExcluded(pa, excludes)) {
                 if (fname.endsWith(".js")) {
                     print("    script: [" + inPath.toString() + "]");
-                    minifyFile(inPath.toString(), outPath.toString());
+                    if (minify) {
+                        minifyFile(inPath.toString(), outPath.toString());
+                    } else {
+                        files.copy(inPath, outPath);
+                    }
                 } else {
                     print("    file: [" + inPath.toString() + "]");
                     files.copy(inPath, outPath);
@@ -167,6 +171,6 @@ function walkAndMinify(inDir, outDir, excludes) {
     }
 }
 
-walkAndMinify(arguments[0], arguments[1], null);
+walkAndMinify(arguments[0], arguments[1], null, "minified" === arguments[2]);
 
 
