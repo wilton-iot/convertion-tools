@@ -151,19 +151,19 @@ function walkAndMinify(inDir, outDir, excludes, minify) {
         } else {
             if (files.isDirectory(pa)) {
                 if (!isDirExcluded(pa, excludes)) {
-                    print("  directory: [" + inPath.toString() + "]");
+                    // print("  directory: [" + inPath.toString() + "]");
                     walkAndMinify(inPath.toString(), outPath.toString(), excludes, minify);
                 }
             } else if (!isFileExcluded(pa, excludes)) {
                 if (fname.endsWith(".js")) {
-                    print("    script: [" + inPath.toString() + "]");
+                    // print("    script: [" + inPath.toString() + "]");
                     if (minify) {
                         minifyFile(inPath.toString(), outPath.toString());
                     } else {
                         files.copy(inPath, outPath);
                     }
                 } else {
-                    print("    file: [" + inPath.toString() + "]");
+                    // print("    file: [" + inPath.toString() + "]");
                     files.copy(inPath, outPath);
                 }
             }
