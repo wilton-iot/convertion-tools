@@ -1,5 +1,23 @@
 #!/usr/lib/jvm/java-1.8.0/bin/jjs
 
+/*
+ * Copyright 2017, alex at staticlibs.net
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// jjs -cp path/to/closure-compiler.jar node-module-wrap.js -- path/to/module
+
 var files = Packages.java.nio.file.Files;
 var paths = Packages.java.nio.file.Paths;
 var system = Packages.java.lang.System;
@@ -10,13 +28,13 @@ var prefix = "define(function(localRequire, exports, module) { var requireOrig =
 var postfix = "require = requireOrig;});";
 
 
-if (1 != arguments.length) {
+if (1 !== arguments.length) {
     print("Error: invalid arguments");
-    print("Usage: jjs node-module-convert.js path/to/module");
+    print("Usage: jjs node-module-wrap.js -- path/to/module");
     system.exit(1);
 }
 
-function convert(modname, path) {
+function wrap(modname, path) {
     if (!path.getFileName().toString().endsWith(".js")) {
        return;
     }
@@ -46,14 +64,14 @@ function convert(modname, path) {
     files.move(tmppath, path, replace);
 }
 
-function walkAndConvert(modname, dirpath) {
+function walkAndWrap(modname, dirpath) {
     var st = files.newDirectoryStream(dirpath);
     for each (pa in st) {
         if(!pa.getFileName().toString().startsWith(".")) {
             if (files.isDirectory(pa)) {
-                walkAndConvert(modname, pa);
+                walkAndWrap(modname, pa);
             } else {
-                convert(modname, pa);
+                wrap(modname, pa);
             }
         }
     }
@@ -61,4 +79,4 @@ function walkAndConvert(modname, dirpath) {
 }
 
 var pa = paths.get(arguments[0]);
-walkAndConvert(pa.getFileName().toString(), pa);
+walkAndWrap(pa.getFileName().toString(), pa);
