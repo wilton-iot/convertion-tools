@@ -48,7 +48,7 @@ function wrap(modname, path) {
         output.write("\n");
     }
     while(null !== line) {
-        line = line.replace(new RegExp("(require\\((:?\\'|\\\"))\\.\\.?\\/", "g"), "\$1" + modname + "/");
+//        line = line.replace(new RegExp("(require\\((:?\\'|\\\"))\\.\\.\\/", "g"), "\$1" + modname + "/");
         line = line.replace(new RegExp("(require\\((:?\\'|\\\")[a-zA-Z0-9\\-]+)\\/(\\'|\\\")", "g"), "\$1\$2");
         output.write(line);
         output.write("\n");

@@ -31,16 +31,11 @@ var sourceFile = com.google.javascript.jscomp.SourceFile;
 var system = Packages.java.lang.System;
 var utf8 = Packages.java.nio.charset.StandardCharsets.UTF_8;
 
-var moduleExcludes = {
-    "nbproject": true,
-    "underscore": true, // used to test lodash only
-    "examples": true // not a lib, bundled unminified
-};
-
 var fileExcludes = {
     "bower.json": true,
+    "composer.json": true,
     "Makefile": true,
-    "LICENSE": true,
+    "package-lock.json": true,
     "wilton-sanity-test.js": true
 };
 
@@ -61,23 +56,17 @@ var filePostfixExcludes = [
 
 function isModuleExcluded(pa) {
     var fname = pa.getFileName().toString();
-    if (true === moduleExcludes[fname]) {
+    if (fname.startsWith(".")) {
         return true;
     }
-    for each (pref in dirPrefixExcludes) {
-        if (fname.startsWith(pref)) {
-            return true;
-        }
-    }
-    return false;
+    var pjpath = paths.get(pa, "package.json");
+    return !files.isRegularFile(pjpath);
 }
 
 function isDirExcluded(pa, excludes) {
     var fname = pa.getFileName().toString();
-    for each (pref in dirPrefixExcludes) {
-        if (fname.startsWith(pref)) {
-            return true;
-        }
+    if (fname.startsWith(".")) {
+        return true;
     }
     for each (expath in excludes) {
         if (expath.equals(pa)) {
@@ -110,14 +99,23 @@ function isFileExcluded(pa, excludes) {
     return false;
 }
 
-function readExcludes(modpath) {
+function isPreMinified(pa, minList) {
+    for each (en in minList) {
+        if (pa.toString().equals(en.toString())) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function readConfig(modpath) {
     var pjpath = paths.get(modpath, "package.json");
     var pjstr = new JString(files.readAllBytes(pjpath), utf8);
     var pj = JSON.parse(pjstr);
     if (!("object" === typeof(pj.wilton) && pj.wilton.excludes instanceof Array)) {
         throw new Error("'wilton.excludes' entry not found in package descriptor: [" + pjpath.toString() + "]");
     }
-    return pj.wilton.excludes;
+    return pj.wilton;
 }
 
 function minifyFile(inFile, outFile) {
@@ -148,34 +146,50 @@ function listDirectory(dir) {
     return list;
 }
 
-function walkAndMinify(inDir, outDir, excludes, minify) {
+function walkAndMinify(inDir, outDir, modcfg, minify) {
     files.createDirectories(paths.get(outDir));
     var list = listDirectory(inDir);
     for each (pa in list) {
         var fname = pa.getFileName().toString();
         var inPath = paths.get(inDir, fname);
         var outPath = paths.get(outDir, fname);
-        if (null === excludes) { // top level dir, top level scripts are ignored
+        if (null === modcfg) { // top level dir, top level scripts are ignored
             if (files.isDirectory(pa) && !isModuleExcluded(pa)) { 
-                var excludesStrings = readExcludes(pa.toString());
-                var collectedExcludes = [];
-                for each (en in excludesStrings) {
-                    collectedExcludes.push(paths.get(pa, en));
+                var cfg = readConfig(pa.toString());
+                if (true !== cfg.excludeModule) {
+                    var collectedExcludes = [];
+                    for each (en in cfg.excludes) {
+                        collectedExcludes.push(paths.get(pa, en));
+                    }
+                    var collectedPreMin = [];
+                    for each (en in cfg.preMinifiedFiles) {
+                        collectedPreMin.push(paths.get(pa, en));
+                    }
+                    var mcfg = {
+                        excludes: collectedExcludes,
+                        preMinifiedFiles: collectedPreMin
+                    };
+                    print("module: [" + fname + "]");
+                    walkAndMinify(inPath.toString(), outPath.toString(), mcfg, minify);
                 }
-                print("module: [" + fname + "]");
-                walkAndMinify(inPath.toString(), outPath.toString(), collectedExcludes, minify);
             }
         } else {
             if (files.isDirectory(pa)) {
-                if (!isDirExcluded(pa, excludes)) {
+                if (!isDirExcluded(pa, modcfg.excludes)) {
                     // print("  directory: [" + inPath.toString() + "]");
-                    walkAndMinify(inPath.toString(), outPath.toString(), excludes, minify);
+                    walkAndMinify(inPath.toString(), outPath.toString(), modcfg, minify);
                 }
-            } else if (!isFileExcluded(pa, excludes)) {
+            } else if (!isFileExcluded(pa, modcfg.excludes)) {
                 if (fname.endsWith(".js")) {
                     // print("    script: [" + inPath.toString() + "]");
                     if (minify) {
-                        minifyFile(inPath.toString(), outPath.toString());
+                        if (isPreMinified(inPath, modcfg.preMinifiedFiles)) {
+                            // print("    minscript: [" + inPath.toString() + "]");
+                            var minPath = paths.get(inPath.getParent(), fname.substr(0, fname.length - 3) + ".min.js");
+                            files.copy(minPath, outPath);
+                        } else {
+                            minifyFile(inPath.toString(), outPath.toString());
+                        }
                     } else {
                         files.copy(inPath, outPath);
                     }
