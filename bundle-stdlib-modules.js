@@ -46,7 +46,8 @@ var dirPrefixExcludes = [
 var filePrefixExcludes = [
     ".",
     "LICENSE",
-    "LICENCE"
+    "LICENCE",
+    "appveyor.yml"
 ];
 
 var filePostfixExcludes = [
