@@ -168,7 +168,8 @@ function walkAndMinify(inDir, outDir, modcfg, minify) {
                     }
                     var mcfg = {
                         excludes: collectedExcludes,
-                        preMinifiedFiles: collectedPreMin
+                        preMinifiedFiles: collectedPreMin,
+                        minify: false === cfg.minify ? false : true
                     };
                     print("module: [" + fname + "]");
                     walkAndMinify(inPath.toString(), outPath.toString(), mcfg, minify);
@@ -183,7 +184,7 @@ function walkAndMinify(inDir, outDir, modcfg, minify) {
             } else if (!isFileExcluded(pa, modcfg.excludes)) {
                 if (fname.endsWith(".js")) {
                     // print("    script: [" + inPath.toString() + "]");
-                    if (minify) {
+                    if (minify && modcfg.minify) {
                         if (isPreMinified(inPath, modcfg.preMinifiedFiles)) {
                             // print("    minscript: [" + inPath.toString() + "]");
                             var minPath = paths.get(inPath.getParent(), fname.substr(0, fname.length - 3) + ".min.js");
